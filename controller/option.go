@@ -29,6 +29,35 @@ var completionRatioMetaOptionKeys = []string{
 	"AudioCompletionRatio",
 }
 
+var adminWritableOptionKeys = map[string]struct{}{
+	"About":                                 {},
+	"Chats":                                 {},
+	"Footer":                                {},
+	"HeaderNavModules":                      {},
+	"HomePageContent":                       {},
+	"Logo":                                  {},
+	"Notice":                                {},
+	"ServerAddress":                         {},
+	"SidebarModulesAdmin":                   {},
+	"SystemName":                            {},
+	"console_setting.announcements":         {},
+	"console_setting.announcements_enabled": {},
+	"console_setting.api_info":              {},
+	"console_setting.api_info_enabled":      {},
+	"console_setting.faq":                   {},
+	"console_setting.faq_enabled":           {},
+	"console_setting.uptime_kuma_enabled":   {},
+	"console_setting.uptime_kuma_groups":    {},
+	"legal.privacy_policy":                  {},
+	"legal.user_agreement":                  {},
+	"theme.frontend":                        {},
+}
+
+func adminCanUpdateOptionKey(key string) bool {
+	_, ok := adminWritableOptionKeys[key]
+	return ok
+}
+
 func isPaymentComplianceOptionKey(key string) bool {
 	return strings.HasPrefix(key, "payment_setting.compliance_")
 }
@@ -136,6 +165,10 @@ func UpdateOption(c *gin.Context) {
 		option.Value = common.Interface2String(option.Value.(int))
 	default:
 		option.Value = fmt.Sprintf("%v", option.Value)
+	}
+	if c.GetInt("role") < common.RoleRootUser && !adminCanUpdateOptionKey(option.Key) {
+		common.ApiErrorMsg(c, "该系统设置仅允许超级管理员修改")
+		return
 	}
 	switch option.Key {
 	case "QuotaForInviter", "QuotaForInvitee":

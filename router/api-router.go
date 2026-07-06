@@ -182,20 +182,24 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/subscription/epay/return", controller.SubscriptionEpayReturn)
 		apiRouter.POST("/subscription/epay/return", anonymousRequestBodyLimit, controller.SubscriptionEpayReturn)
 		optionRoute := apiRouter.Group("/option")
-		optionRoute.Use(middleware.RootAuth())
 		{
-			optionRoute.GET("/", controller.GetOptions)
-			optionRoute.PUT("/", controller.UpdateOption)
-			optionRoute.POST("/payment_compliance", controller.ConfirmPaymentCompliance)
-			optionRoute.GET("/channel_affinity_cache", controller.GetChannelAffinityCacheStats)
-			optionRoute.DELETE("/channel_affinity_cache", controller.ClearChannelAffinityCache)
-			optionRoute.POST("/rest_model_ratio", controller.ResetModelRatio)
-			optionRoute.POST("/migrate_console_setting", controller.MigrateConsoleSetting) // 用于迁移检测的旧键，下个版本会删除
-			optionRoute.GET("/waffo-pancake/catalog", controller.ListWaffoPancakeCatalog)
-			optionRoute.POST("/waffo-pancake/pair", controller.CreateWaffoPancakePair)
-			optionRoute.POST("/waffo-pancake/save", controller.SaveWaffoPancake)
-			optionRoute.POST("/waffo-pancake/subscription-product", controller.CreateWaffoPancakeSubscriptionProduct)
-			optionRoute.GET("/waffo-pancake/subscription-product-options", controller.ListWaffoPancakeSubscriptionProductOptions)
+			optionRoute.GET("/", middleware.AdminAuth(), controller.GetOptions)
+			optionRoute.PUT("/", middleware.AdminAuth(), controller.UpdateOption)
+
+			rootOptionRoute := apiRouter.Group("/option")
+			rootOptionRoute.Use(middleware.RootAuth())
+			{
+				rootOptionRoute.POST("/payment_compliance", controller.ConfirmPaymentCompliance)
+				rootOptionRoute.GET("/channel_affinity_cache", controller.GetChannelAffinityCacheStats)
+				rootOptionRoute.DELETE("/channel_affinity_cache", controller.ClearChannelAffinityCache)
+				rootOptionRoute.POST("/rest_model_ratio", controller.ResetModelRatio)
+				rootOptionRoute.POST("/migrate_console_setting", controller.MigrateConsoleSetting) // 用于迁移检测的旧键，下个版本会删除
+				rootOptionRoute.GET("/waffo-pancake/catalog", controller.ListWaffoPancakeCatalog)
+				rootOptionRoute.POST("/waffo-pancake/pair", controller.CreateWaffoPancakePair)
+				rootOptionRoute.POST("/waffo-pancake/save", controller.SaveWaffoPancake)
+				rootOptionRoute.POST("/waffo-pancake/subscription-product", controller.CreateWaffoPancakeSubscriptionProduct)
+				rootOptionRoute.GET("/waffo-pancake/subscription-product-options", controller.ListWaffoPancakeSubscriptionProductOptions)
+			}
 		}
 
 		// Custom OAuth provider management (root only)
